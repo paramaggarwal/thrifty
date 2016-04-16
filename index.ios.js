@@ -220,7 +220,7 @@ var Thrifty = React.createClass({
             // height: 10
           }}
           trackTintColor='white'
-          progress={1 - (this.state.timer / (60 * 20))}
+          progress={(this.state.timer / (60 * 20))}
         />
 
         <Image 
@@ -294,7 +294,7 @@ var Thrifty = React.createClass({
             // height: 10
           }}
           trackTintColor='white'
-          progress={1 - (this.state.timer / (60 * 20))}
+          progress={(this.state.timer / (60 * 20))}
         />
 
         <Text style={styles.instructions}>
