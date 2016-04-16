@@ -1,6 +1,8 @@
 # thrifty
 Guess the Price game for fashion clothing on iOS. Built at the Myntra Hackathon 2016.
 
+Checkout the [demo video](https://vimeo.com/163112588) of the gameplay.
+
 # Idea
 People love guessing the price of things. But how well do they know fashion clothing? Within a time limit of one minute, guess the price for as many products as possible and prove that you are the Thriftiest Fashion Shopper!
 
