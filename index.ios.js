@@ -12,13 +12,22 @@ import React, {
   Image,
   SliderIOS,
   Modal,
-  TouchableHighlight
+  TouchableHighlight,
+  Animated,
+  Dimensions,
+  ProgressViewIOS,
+  Easing
 } from 'react-native';
 
 var superagent = require('superagent');
+var windowWidth = Dimensions.get('window').width;
 
 function priceRound(price) {
-  return (Math.round(price / 100) * 100) - 1;
+  var p = (Math.round(price / 100) * 100) - 1;
+  if (p < 0) {
+    p = 0;
+  }
+  return p;
 }
 
 var Thrifty = React.createClass({
@@ -29,12 +38,37 @@ var Thrifty = React.createClass({
       min: 0,
       max: 100,
       guess: null,
-      modalVisible: false,
-      score: 0
+      modalVisible: true,
+      newGame: true,
+      score: 0,
+      color: '#940912',
+      timer: 60 * 20, 
+      stampAnimation: new Animated.Value(0),
     };
   },
 
+  endGame: function () {
+    clearInterval(this._interval);
+    this.setState({
+      newGame: false,
+      modalVisible: true,
+    });
+  },
+
   nextImage: function () {
+
+    clearInterval(this._interval);
+    this._interval = setInterval(() => {
+      if (this.state.timer <= 20) {
+        this.endGame();
+      }
+
+      this.setState((prevState) => {
+        return {
+          timer: prevState.timer - 20
+        };
+      });
+    }, 1000 / 20);
 
     var n = Math.round(Math.random() * 1000000);
     superagent.get('http://developer.myntra.com/style/' + n).end((err, res) => {
@@ -67,6 +101,7 @@ var Thrifty = React.createClass({
       });
 
       // console.log(res.body.data);
+      
     });
   },
 
@@ -82,6 +117,25 @@ var Thrifty = React.createClass({
     if (closeness > -10 && closeness < 10) {
       isCorrect = true;
     }
+
+
+    Animated.timing(          // Uses easing functions
+       this.state.stampAnimation,    // The value to drive
+       {
+        toValue: 1,
+        easing: Easing.easeOut
+       }            // Configuration
+     ).start(); 
+
+    setTimeout(() => {
+      Animated.timing(          // Uses easing functions
+       this.state.stampAnimation,    // The value to drive
+       {
+        toValue: 0,
+        easing: Easing.easeOut
+       }            // Configuration
+     ).start(); 
+    }, 1000);
 
     superagent.post('https://popping-heat-5365.firebaseio.com/guesses.json')
       .send({
@@ -110,16 +164,30 @@ var Thrifty = React.createClass({
       });
 
     this.setState({
-      modalVisible: true,
+      // modalVisible: true,
       isCorrect: isCorrect,
-      message: isCorrect ? "You guessed it pretty close! \nCorrect price is Rs. " + actualPrice : "You are wayyy off. \nActual price is Rs. " + actualPrice,
-      color: isCorrect ? 'green' : 'red',
+      message: isCorrect ? "CORRECT! \nCorrect price is Rs. " + actualPrice : "You are wayyy off. \nActual price is Rs. " + actualPrice,
+      color: isCorrect ? 'green' : '#940912',
       score: this.state.score + (isCorrect ? 10 : -2)
     });
 
   },
 
-  componentDidMount: function () {
+  startGame: function () {
+    this.setState({
+      styleID: null,
+      image: null,
+      min: 0,
+      max: 100,
+      guess: null,
+      modalVisible: false,
+      newGame: false,
+      score: 0,
+      color: '#940912',
+      timer: 60 * 20, 
+      stampAnimation: new Animated.Value(0),
+    });
+
     this.nextImage();
   },
 
@@ -127,26 +195,118 @@ var Thrifty = React.createClass({
     return (
       <View style={styles.container}>
         
-        <Text style={styles.instructions}>
+        {/*<Text style={styles.instructions}>
           {Math.round(this.state.price)}
-        </Text>
+        </Text>*/}
 
-        <Text style={styles.welcome}>
-          Score: {this.state.score}
-        </Text>
+        <View style={{
+          flexDirection: 'row',
+          alignSelf: 'stretch',
+          justifyContent: 'space-between',
+          // marginHorizontal: 10,
+        }}>
+          <Text style={styles.welcome}>
+            00:{Math.round(this.state.timer / 20)}
+          </Text>
+          <Text style={styles.welcome}>
+            {this.state.score} points
+          </Text>
+        </View>
 
-        <Image 
-          style={{width: 320, height: 480}} 
-          source={{uri: this.state.image}}
+        <ProgressViewIOS
+          style={{
+            alignSelf: 'stretch',
+            // height: 10
+          }}
+          trackTintColor='white'
+          progress={1 - (this.state.timer / (60 * 20))}
         />
 
+        <Image 
+          style={{width: windowWidth, height: windowWidth * 1.2}} 
+          source={{uri: this.state.image}}
+        >
+
+          <Animated.View style={[styles.container, {
+            flex: 1,
+            transform: [{
+               scale: this.state.stampAnimation.interpolate({
+                 inputRange: [0, 1],
+                 outputRange: [10, 1]  // 0 : 150, 0.5 : 75, 1 : 0
+               }),
+             }],
+            opacity: this.state.stampAnimation, 
+            backgroundColor: 'transparent'
+          }]}>
+            <View style={[styles.innerContainer, {transform: [{rotate: '-30deg'}], backgroundColor: 'white', paddingVertical: 3, paddingHorizontal: 3, borderWidth: 3, borderColor: this.state.color, width: 240,  borderRadius: 10}]}>
+              <View style={[styles.innerContainer, {alignSelf: 'stretch', padding: 10, borderWidth: 5, borderColor: this.state.color, borderRadius: 8}]}>
+
+                  <Text style={styles.welcome, {fontSize: 36, color: this.state.color, fontWeight: 'bold'}}>
+                    {this.state.isCorrect ? 'CORRECT' : 'WRONG'}
+                  </Text>
+
+                  {/*<Button
+                    onPress={() => {this.setState({modalVisible: false})}}
+                    style={styles.modalButton}
+                  >
+                    Close
+                  </Button>*/}
+              </View>
+            </View>
+          </Animated.View>
+
+          <Animated.View style={[styles.container, {
+            
+            transform: [
+              {
+                translateY: this.state.stampAnimation.interpolate({
+                  inputRange: [0, 1],
+                  outputRange: [500, 0]  // 0 : 150, 0.5 : 75, 1 : 0
+                }),
+              },
+              // {
+              //   scale: this.state.stampAnimation.interpolate({
+              //     inputRange: [0, 1],
+              //     outputRange: [10, 1]  // 0 : 150, 0.5 : 75, 1 : 0
+              //   }),
+              // }
+            ],
+            opacity: this.state.stampAnimation, 
+            backgroundColor: 'transparent',
+            height: 60,
+          }]}>
+
+            <View style={[styles.innerContainer, {backgroundColor: 'white', paddingVertical: 3, paddingHorizontal: 3, borderWidth: 3, borderColor: this.state.color, width: 160,  borderRadius: 10}]}>
+              
+              <Text style={styles.welcome, {fontSize: 24, color: this.state.color, fontWeight: 'bold'}}>
+                Rs. {this.state.price}
+              </Text>
+
+            </View>
+          </Animated.View>
+
+        </Image>
+
+        <ProgressViewIOS
+          style={{
+            alignSelf: 'stretch',
+            // height: 10
+          }}
+          trackTintColor='white'
+          progress={1 - (this.state.timer / (60 * 20))}
+        />
+
+        <Text style={styles.instructions}>
+          {this.state.product ? this.state.product.articleType.typeName : ''} by {this.state.product ? this.state.product.brandName : ''}
+        </Text>
+
         <Text style={styles.welcome}>
-          Guess the price!
+          {this.state.guess ? "Rs. " + Math.round(this.state.guess) : 'Make a guess:'}
         </Text>
 
         <SliderIOS
           style={{
-            width: 320,
+            width: windowWidth,
           }}
           step={100}
           value={this.state.mid || this.state.guess}
@@ -155,37 +315,67 @@ var Thrifty = React.createClass({
           onValueChange={(value) => this.setState({mid: null, guess: value})}
           onSlidingComplete={this.checkGuess}
         />
-
-        <Text style={styles.welcome}>
-          {this.state.guess ? "Rs. " + Math.round(this.state.guess) : ''}
-        </Text>
+        
+        <View style={{
+          flexDirection: 'row',
+          alignSelf: 'stretch',
+          justifyContent: 'space-between',
+          marginHorizontal: 10,
+        }}>
+          <Text style={styles.instructions}>
+            Rs. {this.state.min}
+          </Text>
+          <Text style={styles.instructions}>
+            Rs. {this.state.max}
+          </Text>
+        </View>
 
         <Modal
           animated={true}
-          transparent={true}
           visible={this.state.modalVisible}
-          // onRequestClose={() => {this.setState({modalVisible: false})}}
-          // onShow={() => {this._setModalVisible(false)}}
           >
-          <View style={[styles.container, {backgroundColor: 'transparent'}]}>
-            <View style={[styles.innerContainer, {backgroundColor: this.state.color, padding: 20}]}>
-              <Text style={styles.welcome}>
-                {this.state.isCorrect ? '+10' : '-2'}
-              </Text>
-
-              <Text style={styles.welcome}>
-                {this.state.message}
-              </Text>
-
+          {this.state.newGame ? <View style={[styles.container, {alignItems: 'stretch'}]}>
+            <View style={[styles.innerContainer, {alignItems: 'center'}]}>
+              <Image
+                source={require('image!splash')}
+              />
+              
               <Button
-                onPress={() => {this.setState({modalVisible: false})}}
+                onPress={() => this.startGame()}
                 style={styles.modalButton}
               >
-                Close
+                Start
               </Button>
+
             </View>
-          </View>
+          </View> :
+          <View style={[styles.container, {alignItems: 'stretch'}]}>
+            <View style={[styles.innerContainer, {alignItems: 'center'}]}>
+
+              <Text style={styles.welcome, {fontSize: 72}}>
+                {this.state.score}
+              </Text>
+
+              <Text style={styles.welcome}>
+                points
+              </Text>
+
+              <Image
+                style={{marginVertical: 40}}
+                source={require('image!game-over')}              
+              />
+              
+              <Button
+                onPress={() => this.startGame()}
+                style={styles.modalButton}
+              >
+                Play Again
+              </Button>
+
+            </View>
+          </View>}
         </Modal>
+
       </View>
     );
   }
@@ -208,7 +398,7 @@ var Button = React.createClass({
 
   render() {
     var colorStyle = {
-      color: this.state.active ? '#fff' : '#000',
+      color: '#fff',
     };
 
     return (
@@ -217,7 +407,7 @@ var Button = React.createClass({
         onPress={this.props.onPress}
         onShowUnderlay={this._onHighlight}
         style={[styles.button, this.props.style]}
-        // underlayColor="#a9d9d4"
+        underlayColor="#002752"
       >
           <Text style={[styles.buttonText, colorStyle]}>{this.props.children}</Text>
       </TouchableHighlight>
@@ -230,7 +420,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#FFF',
   },
   welcome: {
     fontSize: 20,
@@ -251,15 +441,17 @@ const styles = StyleSheet.create({
   button: {
     borderRadius: 5,
     flex: 1,
-    height: 44,
-    alignSelf: 'stretch',
-    justifyContent: 'center',
+    // height: 44,
+    width: 100,
+    // alignSelf: 'center',
+    // justifyContent: 'center',
     overflow: 'hidden',
+    backgroundColor: '#007aff'
   },
 
   buttonText: {
     fontSize: 18,
-    margin: 5,
+    margin: 10,
     textAlign: 'center',
   },
 
