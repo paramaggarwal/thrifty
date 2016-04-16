@@ -1,0 +1,14 @@
+{
+  "name": "Thrifty",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node node_modules/react-native/local-cli/cli.js start",
+    "bundle": "node node_modules/react-native/local-cli/cli.js bundle --dev false --platform ios --entry-file index.ios.js --bundle-output ios/main.jsbundle"
+  },
+  "dependencies": {
+    "react": "^0.14.8",
+    "react-native": "^0.23.1",
+    "superagent": "^1.8.3"
+  }
+}
