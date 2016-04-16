@@ -7,8 +7,11 @@
     "bundle": "node node_modules/react-native/local-cli/cli.js bundle --dev false --platform ios --entry-file index.ios.js --bundle-output ios/main.jsbundle"
   },
   "dependencies": {
+    "better-console": "^0.2.4",
+    "machine_learning": "0.0.8",
     "react": "^0.14.8",
     "react-native": "^0.23.1",
-    "superagent": "^1.8.3"
+    "superagent": "^1.8.3",
+    "underscore": "^1.8.3"
   }
 }
