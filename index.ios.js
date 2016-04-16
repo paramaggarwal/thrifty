@@ -65,7 +65,7 @@ var Thrifty = React.createClass({
 
       this.setState((prevState) => {
         return {
-          timer: prevState.timer - 20
+          timer: prevState.timer - 1
         };
       });
     }, 1000 / 20);
@@ -74,10 +74,11 @@ var Thrifty = React.createClass({
     superagent.get('http://developer.myntra.com/style/' + n).end((err, res) => {
       if (err) {
         console.log(err);
+        this.nextImage();
         return;
       }
 
-      var hasImage = res.body.data && res.body.data.styleImages && res.body.data.styleImages.default && res.body.data.styleImages.default.resolutions;
+      var hasImage = res.body.data && res.body.data.styleImages && res.body.data.styleImages.default && res.body.data.styleImages.default.resolutions && res.body.data.styleImages.default.resolutions["360X480Xmini"];;
       if (!hasImage) {
         this.nextImage();
         return;
