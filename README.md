@@ -4,7 +4,7 @@ Guess the Price game for fashion clothing on iOS. Built at the Myntra Hackathon 
 Checkout the [demo video](https://vimeo.com/163112588) of the gameplay.
 
 # Idea
-People love guessing the price of things. But how well do they know fashion clothing? Within a time limit of one minute, guess the price for as many products as possible and prove that you are the Thriftiest Fashion Shopper!
+People love guessing the price of things. But how well do they know fashion clothing? Within just 15 seconds, try to guess the price for as many products as possible and prove that you are the Thriftiest Fashion Shopper!
 
 # Machine Learning
 While the game is great fun to play, it actually makes intelligent use of the data collected. A machine learning decision tree is run over the data and then deductions are made. Specifically to understand the mismatch in actual product prices and what people expect to pay for them based on different attributes of products.
