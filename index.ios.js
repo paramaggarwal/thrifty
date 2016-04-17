@@ -21,6 +21,7 @@ import React, {
 
 var superagent = require('superagent');
 var windowWidth = Dimensions.get('window').width;
+var gameTime = 15;
 
 function priceRound(price) {
   var p = (Math.round(price / 100) * 100) - 1;
@@ -42,7 +43,7 @@ var Thrifty = React.createClass({
       newGame: true,
       score: 0,
       color: '#940912',
-      timer: 60 * 20, 
+      timer: gameTime * 20, 
       stampAnimation: new Animated.Value(0),
     };
   },
@@ -112,8 +113,6 @@ var Thrifty = React.createClass({
 
     var closeness = ((actualPrice - guessedPrice) / actualPrice) * 100;
     
-    this.nextImage();
-
     var isCorrect = false;
     if (closeness > -10 && closeness < 10) {
       isCorrect = true;
@@ -136,6 +135,8 @@ var Thrifty = React.createClass({
         easing: Easing.easeOut
        }            // Configuration
      ).start(); 
+
+      this.nextImage();
     }, 1000);
 
     superagent.post('https://popping-heat-5365.firebaseio.com/guesses.json')
@@ -185,7 +186,7 @@ var Thrifty = React.createClass({
       newGame: false,
       score: 0,
       color: '#940912',
-      timer: 60 * 20, 
+      timer: gameTime * 20, 
       stampAnimation: new Animated.Value(0),
     });
 
@@ -220,7 +221,7 @@ var Thrifty = React.createClass({
             // height: 10
           }}
           trackTintColor='white'
-          progress={(this.state.timer / (60 * 20))}
+          progress={(this.state.timer / (gameTime * 20))}
         />
 
         <Image 
@@ -294,7 +295,7 @@ var Thrifty = React.createClass({
             // height: 10
           }}
           trackTintColor='white'
-          progress={(this.state.timer / (60 * 20))}
+          progress={(this.state.timer / (gameTime * 20))}
         />
 
         <Text style={styles.instructions}>
